@@ -1,49 +1,19 @@
-variable "profile" {}
-variable "region" {}
+variable "name" {}
 variable "slack_token" {}
 variable "slack_channel" {}
 variable "schedule_expression" {
   default = "cron(0 0 * * ? *)"
 }
-
-locals {
-  name       = "aws_cost_usage"
-  created_by = "Terraform"
-}
-
-provider "aws" {
-  region  = var.region
-  profile = var.profile
-  default_tags {
-    tags = {
-      App       = local.name
-      CreatedBy = local.created_by
-    }
-  }
-}
-
-terraform {
-  backend "s3" {
-    key    = "aws_cost_usage.tfstate"
-    region = "ap-northeast-1"
-  }
-}
-
-data "archive_file" "this" {
-  type        = "zip"
-  source_file = "bin/main"
-  output_path = "bin/main.zip"
+variable "image_uri" {
+  default = "public.ecr.aws/a8y2r9d0/aws-cost-usage"
 }
 
 resource "aws_lambda_function" "this" {
-  function_name    = local.name
-  filename         = "bin/main.zip"
-  handler          = "main"
-  source_code_hash = data.archive_file.this.output_base64sha256
-  runtime          = "go1.x"
-  memory_size      = 128
-  timeout          = 10
-  role             = aws_iam_role.this.arn
+  function_name = var.name
+  image_uri     = var.image_uri
+  memory_size   = 128
+  timeout       = 10
+  role          = aws_iam_role.this.arn
   environment {
     variables = {
       "SLACK_TOKEN"   = var.slack_token
@@ -53,23 +23,23 @@ resource "aws_lambda_function" "this" {
 }
 
 resource "aws_cloudwatch_log_group" "this" {
-  name              = "/aws/lambda/${local.name}"
+  name              = "/aws/lambda/${var.name}"
   retention_in_days = 7
 }
 
 resource "aws_cloudwatch_event_rule" "this" {
-  name                = local.name
+  name                = var.name
   schedule_expression = var.schedule_expression
 }
 
 resource "aws_cloudwatch_event_target" "this" {
   rule      = aws_cloudwatch_event_rule.this.name
-  target_id = local.name
+  target_id = var.name
   arn       = aws_lambda_function.this.arn
 }
 
 resource "aws_iam_role" "this" {
-  name               = local.name
+  name               = var.name
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -88,7 +58,7 @@ EOF
 }
 
 resource "aws_iam_policy" "this" {
-  name        = local.name
+  name        = var.name
   path        = "/"
   description = "IAM policy for logging from a lambda"
   policy      = <<EOF
@@ -100,7 +70,7 @@ resource "aws_iam_policy" "this" {
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
-		"ce:*"
+        "ce:*"
       ],
       "Resource": "*",
       "Effect": "Allow"
