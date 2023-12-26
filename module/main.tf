@@ -4,13 +4,16 @@ variable "slack_channel" {}
 variable "schedule_expression" {
   default = "cron(0 0 * * ? *)"
 }
-variable "image_uri" {
-  default = "public.ecr.aws/a8y2r9d0/aws-cost-usage"
+variable "build_version" {
+  default = "v0.0.0"
 }
 
 resource "aws_lambda_function" "this" {
   function_name = var.name
-  image_uri     = var.image_uri
+  s3_bucket     = "tetsuya28-aws-cost-report"
+  s3_key        = "${var.build_version}/main.zip"
+  runtime       = "go1.x"
+  handler       = "main"
   memory_size   = 128
   timeout       = 10
   role          = aws_iam_role.this.arn
