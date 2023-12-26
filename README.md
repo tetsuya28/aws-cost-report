@@ -6,7 +6,7 @@
 ```
 cp .env{.sample,}
 cp .terraform.tfvars{.sample,}
-make init
+make terraform/init
 ```
 
 - Run locally
@@ -16,6 +16,6 @@ make run
 
 - Deploy to AWS with terraform
 ```
-make plan
-make apply
+make terraform/plan
+make terraform/apply
 ```

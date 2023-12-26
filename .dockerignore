@@ -1,0 +1,4 @@
+module/
+testdata/
+.git/
+.env.sample

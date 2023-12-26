@@ -2,16 +2,13 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/slack-go/slack"
 	"github.com/tetsuya28/aws_cost_report/external"
-	"github.com/tetsuya28/aws_cost_report/testdata"
 )
 
 type Config struct {
@@ -20,12 +17,7 @@ type Config struct {
 }
 
 func main() {
-	// Exec on Lambda or not
-	if os.Getenv("_HANDLER") != "" {
-		lambda.Start(handler)
-	} else {
-		handler()
-	}
+	lambda.Start(handler)
 }
 
 func handler() error {
@@ -36,34 +28,42 @@ func handler() error {
 	slk := external.NewSlack(config.SlackToken)
 
 	now := time.Now()
-	yesterday := now.Add(-1 * 24 * time.Hour).Format("2006-01-02")
+	yesterday := now.Add(-1 * 24 * time.Hour)
 
-	var result *costexplorer.GetCostAndUsageOutput
-	var err error
-	if os.Getenv("_HANDLER") != "" {
-		result, err = external.GetCost()
-	} else {
-		result, err = testdata.GetCostAndUsage()
-	}
+	result, err := external.GetCost(yesterday, now)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	totalCost := 0.0
-	attachments := make([]slack.Attachment, 0)
+	attachments := make([]slack.Attachment, len(result.ResultsByTime), 0)
 	for i := range result.ResultsByTime {
 		for _, service := range result.ResultsByTime[i].Groups {
+			value, ok := service.Metrics["BlendedCost"]
+			if !ok || value == nil {
+				continue
+			}
+
+			if value.Amount == nil {
+				continue
+			}
+
+			usageQuantity, ok := service.Metrics["UsageQuantity"]
+			if !ok || usageQuantity == nil {
+				continue
+			}
+
 			attachment := slack.Attachment{
 				Color: "#00ff00",
 				Fields: []slack.AttachmentField{
 					{
 						Title: "料金",
-						Value: fmt.Sprintf("%s%s", *service.Metrics["BlendedCost"].Amount, *service.Metrics["BlendedCost"].Unit),
+						Value: fmt.Sprintf("%s%s", *value.Amount, *value.Unit),
 						Short: true,
 					},
 					{
 						Title: "使用量",
-						Value: *service.Metrics["UsageQuantity"].Amount,
+						Value: *usageQuantity.Amount,
 						Short: true,
 					},
 				},
@@ -71,18 +71,19 @@ func handler() error {
 				AuthorIcon: external.GetIconURL(*service.Keys[0]),
 			}
 			attachments = append(attachments, attachment)
-			cost, err := strconv.ParseFloat(*service.Metrics["BlendedCost"].Amount, 10)
+
+			cost, err := strconv.ParseFloat(*value.Amount, 10)
 			if err != nil {
 				continue
 			}
 			totalCost += cost
 		}
 	}
-	text := fmt.Sprintf("%sのコスト一覧\n合計金額: $%.3f", yesterday, totalCost)
+	text := fmt.Sprintf("%sのコスト一覧\n合計金額: $%.3f", yesterday.Format("2006-01-02"), totalCost)
 	option := slack.MsgOptionText(text, false)
 	err = slk.PostMessage(config.SlackChannel, option, slack.MsgOptionAttachments(attachments...))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return nil
 }
