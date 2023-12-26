@@ -36,7 +36,7 @@ func handler() error {
 	}
 
 	totalCost := 0.0
-	attachments := make([]slack.Attachment, len(result.ResultsByTime), 0)
+	attachments := make([]slack.Attachment, len(result.ResultsByTime))
 	for i := range result.ResultsByTime {
 		for _, service := range result.ResultsByTime[i].Groups {
 			value, ok := service.Metrics["BlendedCost"]
