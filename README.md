@@ -5,6 +5,20 @@ Notify daily cost usage of an AWS account to slack channel.
 You can deploy with Terraform resources on your AWS account.
 
 ```hcl
+terraform {
+  required_version = "1.6.6"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.31.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "5.42.0"
+    }
+  }
+}
+
 module "cost" {
   source        = "github.com/tetsuya28/aws_cost_report.git//module"
   name          = "aws-cost-report" # AWS resource name to deploy Lambda, IAM, etc
