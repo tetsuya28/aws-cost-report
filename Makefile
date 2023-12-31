@@ -1,4 +1,6 @@
 TAG ?= v0.0.0
+SLACK_TOKEN ?=
+SLACK_CHANNEL ?=
 
 .PHONY: run
 run:
@@ -11,6 +13,10 @@ build:
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: integration-test
+integration-test:
+	SLACK_TOKEN=$(SLACK_TOKEN) SLACK_CHANNEL=$(SLACK_CHANNEL) go test -v ./... -tags=integration
 
 .PHONY: upload
 upload: build
