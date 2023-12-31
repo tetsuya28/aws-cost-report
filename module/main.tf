@@ -33,7 +33,7 @@ resource "aws_lambda_function" "this" {
   runtime          = "go1.x"
   handler          = "aws-cost-report"
   filename         = local.lambda_zip_file
-  source_code_hash = filebase64sha256(local.lambda_zip_file)
+  source_code_hash = fileexists(local.lambda_zip_file) ? filebase64sha256(local.lambda_zip_file) : ""
   memory_size      = 128
   timeout          = 10
   role             = aws_iam_role.this.arn
