@@ -4,11 +4,7 @@ SLACK_CHANNEL ?=
 
 .PHONY: run
 run:
-	go run main.go
-
-.PHONY: build
-build:
-	GOOS=linux GOARCH=amd64 go build -o bin/main main.go
+	SLACK_TOKEN=$(SLACK_TOKEN) SLACK_CHANNEL=$(SLACK_CHANNEL) go run main.go
 
 .PHONY: test
 test:

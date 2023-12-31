@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/slack-go/slack"
-	"github.com/tetsuya28/aws_cost_report/external"
+	"github.com/tetsuya28/aws-cost-report/external"
 	"github.com/ucpr/mongo-streamer/pkg/log"
 )
 
