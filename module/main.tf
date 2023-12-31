@@ -5,24 +5,45 @@ variable "schedule_expression" {
   default = "cron(0 0 * * ? *)"
 }
 variable "build_version" {
-  default = "v0.0.0"
+  default = "v0.1.0"
+}
+
+locals {
+  lambda_zip_file = format("%s/.terraform/%s.zip", path.root, var.build_version)
+}
+
+data "github_release" "this" {
+  owner       = "tetsuya28"
+  repository  = "aws-cost-report"
+  retrieve_by = "tag"
+  release_tag = var.build_version
+}
+
+resource "null_resource" "this" {
+  triggers = {
+    timestamp = timestamp()
+  }
+  provisioner "local-exec" {
+    command = "wget -O ${local.lambda_zip_file} ${data.github_release.this.assets[2].browser_download_url}"
+  }
 }
 
 resource "aws_lambda_function" "this" {
-  function_name = var.name
-  s3_bucket     = "tetsuya28-aws-cost-report"
-  s3_key        = "${var.build_version}/main.zip"
-  runtime       = "go1.x"
-  handler       = "main"
-  memory_size   = 128
-  timeout       = 10
-  role          = aws_iam_role.this.arn
+  function_name    = var.name
+  runtime          = "go1.x"
+  handler          = "aws-cost-report"
+  filename         = local.lambda_zip_file
+  source_code_hash = filebase64sha256(local.lambda_zip_file)
+  memory_size      = 128
+  timeout          = 10
+  role             = aws_iam_role.this.arn
   environment {
     variables = {
       "SLACK_TOKEN"   = var.slack_token
       "SLACK_CHANNEL" = var.slack_channel
     }
   }
+  depends_on = [null_resource.this]
 }
 
 resource "aws_cloudwatch_log_group" "this" {

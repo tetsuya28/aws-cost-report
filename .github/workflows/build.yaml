@@ -45,7 +45,7 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o aws-cost-report main.go
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} CGO_ENABLED=0 go build -o aws-cost-report main.go
 
       - name: Zip
         run: zip ${{ matrix.os }}-${{ matrix.arch }}-aws-cost-report.zip aws-cost-report
