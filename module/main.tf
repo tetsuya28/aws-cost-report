@@ -21,22 +21,24 @@ data "github_release" "this" {
 
 resource "null_resource" "this" {
   triggers = {
-    build_version = var.build_version
+    timestamp = timestamp()
   }
   provisioner "local-exec" {
-    command = "wget -O ${local.lambda_zip_file} ${data.github_release.this.assets[2].browser_download_url}"
+    command = <<EOF
+test -e ${local.lambda_zip_file} ||
+wget -O ${local.lambda_zip_file} ${data.github_release.this.assets[2].browser_download_url}
+EOF
   }
 }
 
 resource "aws_lambda_function" "this" {
-  function_name    = var.name
-  runtime          = "go1.x"
-  handler          = "aws-cost-report"
-  filename         = local.lambda_zip_file
-  source_code_hash = fileexists(local.lambda_zip_file) ? filebase64sha256(local.lambda_zip_file) : ""
-  memory_size      = 128
-  timeout          = 10
-  role             = aws_iam_role.this.arn
+  function_name = var.name
+  runtime       = "go1.x"
+  handler       = "aws-cost-report"
+  filename      = local.lambda_zip_file
+  memory_size   = 128
+  timeout       = 10
+  role          = aws_iam_role.this.arn
   environment {
     variables = {
       "SLACK_TOKEN"   = var.slack_token
