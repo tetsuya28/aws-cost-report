@@ -5,7 +5,7 @@ variable "schedule_expression" {
   default = "cron(0 0 * * ? *)"
 }
 variable "build_version" {
-  default = "v0.1.0"
+  default = "v0.1.2"
 }
 
 locals {
@@ -21,7 +21,7 @@ data "github_release" "this" {
 
 resource "null_resource" "this" {
   triggers = {
-    timestamp = timestamp()
+    build_version = var.build_version
   }
   provisioner "local-exec" {
     command = "wget -O ${local.lambda_zip_file} ${data.github_release.this.assets[2].browser_download_url}"
