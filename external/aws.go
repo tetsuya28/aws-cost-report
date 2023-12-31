@@ -40,14 +40,20 @@ func GetIconURL(service string) string {
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ManagementGovernance/CloudWatch.png?raw=true"
 	case "Amazon CloudFront":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/NetworkingContentDelivery/CloudFront.png?raw=true"
+	case "AWS Amplify":
+		return ""
+	case "AWS Glue":
+		return ""
 	default:
 		return ""
 	}
 }
 
-func GetCost(startDay, endDay time.Time) (*costexplorer.GetCostAndUsageOutput, error) {
-	start := startDay.Format("2006-01-02")
-	end := endDay.Format("2006-01-02")
+func GetCost() (*costexplorer.GetCostAndUsageOutput, error) {
+	now := time.Now()
+	end := now.Format("2006-01-02")
+	twoDaysBefore := now.AddDate(0, 0, -2).Format("2006-01-02")
+
 	granularity := "DAILY"
 	metrics := []string{
 		"AmortizedCost",
@@ -66,7 +72,7 @@ func GetCost(startDay, endDay time.Time) (*costexplorer.GetCostAndUsageOutput, e
 	svc := costexplorer.New(sess)
 	result, err := svc.GetCostAndUsage(&costexplorer.GetCostAndUsageInput{
 		TimePeriod: &costexplorer.DateInterval{
-			Start: aws.String(start),
+			Start: aws.String(twoDaysBefore),
 			End:   aws.String(end),
 		},
 		Granularity: aws.String(granularity),
