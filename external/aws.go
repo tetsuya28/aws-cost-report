@@ -41,9 +41,25 @@ func GetIconURL(service string) string {
 	case "Amazon CloudFront":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/NetworkingContentDelivery/CloudFront.png?raw=true"
 	case "AWS Amplify":
-		return ""
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/FrontEndWebMobile/AmplifyAWSAmplifyStudio.png?raw=true"
 	case "AWS Glue":
-		return ""
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Analytics/Glue.png?raw=true"
+	case "Amazon Simple Notification Service":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ApplicationIntegration/SimpleNotificationService.png?raw=true"
+	case "AWS Secrets Manager":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/SecurityIdentityCompliance/SecretsManager.png?raw=true"
+	case "Amazon Virtual Private Cloud":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Groups/VPC.png?raw=true"
+	case "AWS WAF":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/SecurityIdentityCompliance/WAF.png?raw=true"
+	case "EC2 - Other":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Compute/EC2.png?raw=true"
+	case "AWS Step Functions":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ApplicationIntegration/StepFunctions.png?raw=true"
+	case "Amazon Elastic Compute Cloud - Compute":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Compute/EC2.png?raw=true"
+	case "AWS CloudTrail":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ManagementGovernance/CloudTrail.png?raw=true"
 	default:
 		return ""
 	}
