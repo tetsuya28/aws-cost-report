@@ -86,7 +86,7 @@ EOF
 resource "aws_iam_policy" "this" {
   name        = var.name
   path        = "/"
-  description = "IAM policy for logging from a lambda"
+  description = "IAM policy for lambda"
   policy      = <<EOF
 {
   "Version": "2012-10-17",
@@ -96,7 +96,8 @@ resource "aws_iam_policy" "this" {
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
-        "ce:*"
+        "ce:*",
+        "account:GetContactInformation"
       ],
       "Resource": "*",
       "Effect": "Allow"
