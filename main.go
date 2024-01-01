@@ -12,7 +12,12 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/tetsuya28/aws-cost-report/config"
 	"github.com/tetsuya28/aws-cost-report/external"
+	"github.com/tetsuya28/aws-cost-report/i18y"
 	"github.com/ucpr/mongo-streamer/pkg/log"
+)
+
+var (
+	Language string
 )
 
 type DailyCost struct {
@@ -34,6 +39,15 @@ func main() {
 func handler() error {
 	cfg, err := config.New()
 	if err != nil {
+		log.Warn("failed to new config, err=%w", err)
+		return err
+	}
+
+	Language = cfg.Language
+
+	err = i18y.Init()
+	if err != nil {
+		log.Warn("failed to init i18y, err=%w", err)
 		return err
 	}
 
@@ -41,6 +55,7 @@ func handler() error {
 
 	result, err := external.GetCost()
 	if err != nil {
+		log.Warn("failed to get cost, err=%w", err)
 		return err
 	}
 
@@ -70,7 +85,7 @@ func handler() error {
 
 			dailyCost.Services[serviceName] = c
 
-			// 日次合計を計算する
+			// Sum total daily cost
 			dailyCost.Total += c.CostAmount
 		}
 
@@ -79,17 +94,19 @@ func handler() error {
 
 	fullName, err := external.GetAccountFullName(context.Background())
 	if err != nil {
+		log.Warn("failed to get account info, err=%w", err)
 		return err
 	}
 
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
-	text := fmt.Sprintf("%s の %s コスト\n合計金額: $%.3f", fullName, yesterday.Format("2006-01-02"), cost[0].Total)
+	text := i18y.Translate(Language, "title", fullName, yesterday.Format("2006-01-02"), cost[1].Total)
 	option := slack.MsgOptionText(text, false)
 
 	attachments := toAttachment(cost)
 	err = slk.PostMessage(cfg.SlackChannel, option, slack.MsgOptionAttachments(attachments...))
 	if err != nil {
+		log.Warn("failed to post message to Slack, err=%w", err)
 		return err
 	}
 
@@ -142,9 +159,9 @@ func toCost(result *costexplorer.Group) (ServiceDetail, error) {
 }
 
 func toAttachment(cost []DailyCost) []slack.Attachment {
-	// 一昨日、昨日のコスト比較なので 2 つのみ
-	// [0] : 一昨日、 [1] : 昨日
+	// Just day before yesterday and yesterday
 	if len(cost) != 2 {
+		log.Warn("cost length is not 2")
 		return nil
 	}
 
@@ -158,22 +175,21 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 			diff := (detail.CostAmount / before.CostAmount) * 100
 
 			if !math.IsNaN(diff) {
-				priceDiffStatement += " ( 前日比 : "
-
-				// 前日よりも高くなってたら赤色にする
+				diffMark := ""
+				// Set red color if diff is over 100%
 				if diff == 100 {
 					color = "#ffffff"
-					priceDiffStatement += ""
 				} else if diff > 100 {
 					color = "#ff0000"
-					priceDiffStatement += "📈 "
+					diffMark = "📈"
 				} else {
 					color = "#0000ff"
-					priceDiffStatement += "📉 "
+					diffMark = "📉"
 				}
 
-				priceDiffStatement += fmt.Sprintf(
-					"%.1f%% )",
+				priceDiffStatement = fmt.Sprintf(
+					" ( %s %.1f%% )",
+					diffMark,
 					diff,
 				)
 			}
@@ -181,7 +197,7 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 
 		fields := []slack.AttachmentField{
 			{
-				Title: "料金",
+				Title: i18y.Translate(Language, "cost"),
 				Value: fmt.Sprintf(
 					"%.3f%s%s",
 					detail.CostAmount,
@@ -191,7 +207,7 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 				Short: true,
 			},
 			{
-				Title: "使用量",
+				Title: i18y.Translate(Language, "usage"),
 				Value: fmt.Sprintf("%.3f%s", detail.UsageAmount, detail.UsageUnit),
 				Short: true,
 			},
