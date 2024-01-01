@@ -97,7 +97,7 @@ resource "aws_iam_policy" "this" {
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "ce:*",
-				"account:GetContactInformation"
+        "account:GetContactInformation"
       ],
       "Resource": "*",
       "Effect": "Allow"
