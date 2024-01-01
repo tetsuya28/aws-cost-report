@@ -9,16 +9,11 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/slack-go/slack"
+	"github.com/tetsuya28/aws-cost-report/config"
 	"github.com/tetsuya28/aws-cost-report/external"
 	"github.com/ucpr/mongo-streamer/pkg/log"
 )
-
-type Config struct {
-	SlackToken   string `required:"true" envconfig:"SLACK_TOKEN"`
-	SlackChannel string `required:"true" envconfig:"SLACK_CHANNEL"`
-}
 
 type DailyCost struct {
 	Total    float64
@@ -37,11 +32,12 @@ func main() {
 }
 
 func handler() error {
-	config := Config{}
-	if err := envconfig.Process("", &config); err != nil {
-		panic(err)
+	cfg, err := config.New()
+	if err != nil {
+		return err
 	}
-	slk := external.NewSlack(config.SlackToken)
+
+	slk := external.NewSlack(cfg.SlackToken)
 
 	result, err := external.GetCost()
 	if err != nil {
@@ -92,7 +88,7 @@ func handler() error {
 	option := slack.MsgOptionText(text, false)
 
 	attachments := toAttachment(cost)
-	err = slk.PostMessage(config.SlackChannel, option, slack.MsgOptionAttachments(attachments...))
+	err = slk.PostMessage(cfg.SlackChannel, option, slack.MsgOptionAttachments(attachments...))
 	if err != nil {
 		return err
 	}
