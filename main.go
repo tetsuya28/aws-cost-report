@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -80,9 +81,14 @@ func handler() error {
 		cost[i] = dailyCost
 	}
 
+	fullName, err := external.GetAccountFullName(context.Background())
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
-	text := fmt.Sprintf("%sのコスト一覧\n合計金額: $%.3f", yesterday.Format("2006-01-02"), cost[0].Total)
+	text := fmt.Sprintf("%s の %s コスト\n合計金額: $%.3f", fullName, yesterday.Format("2006-01-02"), cost[0].Total)
 	option := slack.MsgOptionText(text, false)
 
 	attachments := toAttachment(cost)

@@ -12,6 +12,7 @@ test:
 
 .PHONY: integration-test
 integration-test:
+	go clean -testcache
 	SLACK_TOKEN=$(SLACK_TOKEN) SLACK_CHANNEL=$(SLACK_CHANNEL) go test -v ./... -tags=integration
 
 .PHONY: upload

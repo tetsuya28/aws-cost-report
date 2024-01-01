@@ -1,8 +1,11 @@
 package external
 
 import (
+	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
@@ -60,6 +63,12 @@ func GetIconURL(service string) string {
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Compute/EC2.png?raw=true"
 	case "AWS CloudTrail":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ManagementGovernance/CloudTrail.png?raw=true"
+	case "Amazon Simple Queue Service":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/ApplicationIntegration/SimpleQueueService.png?raw=true"
+	case "Amazon GuardDuty":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/SecurityIdentityCompliance/GuardDuty.png?raw=true"
+	case "Amazon Elastic Container Service for Kubernetes":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Containers/EKSCloud.png?raw=true"
 	default:
 		return ""
 	}
@@ -112,4 +121,20 @@ func GetCost() (*costexplorer.GetCostAndUsageOutput, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func GetAccountFullName(ctx context.Context) (string, error) {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	client := account.NewFromConfig(cfg)
+
+	output, err := client.GetContactInformation(ctx, &account.GetContactInformationInput{})
+	if err != nil {
+		return "", err
+	}
+
+	return *output.ContactInformation.FullName, nil
 }
