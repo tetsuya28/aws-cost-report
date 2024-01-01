@@ -1,8 +1,12 @@
 ## What is aws_cost_usage
 Notify daily cost usage of an AWS account to slack channel.
 
+![](./docs/notification.jpg)
+
 ## How to use this
-You can deploy with Terraform resources on your AWS account.
+### Execution
+#### Lambda
+You can deploy with Terraform resources on your AWS account with AWS Lambda.
 
 ```hcl
 terraform {
@@ -28,6 +32,15 @@ module "cost" {
 }
 ```
 
+#### Others
+You can download binary from GitHub Release.
+
+### Support multi languages
+- English
+  - Set `LANGUAGE=en`
+- Japanese
+  - Set `LANGUAGE=ja`
+
 ## Development
 - Init
 ```
@@ -38,3 +51,8 @@ cp .env{.sample,}
 ```
 make run
 ```
+
+## Known issues
+### Got daily cost as $0.000
+If you set CloudWatch Events Schedule near AM 0:00 in UTC, AWS has not reflect daily cost yet.
+So, you need to set the schedule for more later.
