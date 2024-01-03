@@ -103,7 +103,12 @@ func handler() error {
 	text := i18y.Translate(Language, "title", fullName, yesterday.Format("2006-01-02"), cost[1].Total)
 	option := slack.MsgOptionText(text, false)
 
-	attachments := toAttachment(cost)
+	attachments, err := toAttachment(cost)
+	if err != nil {
+		log.Warn("failed to convert attachment, err=%w", err)
+		return err
+	}
+
 	err = slk.PostMessage(cfg.SlackChannel, option, slack.MsgOptionAttachments(attachments...))
 	if err != nil {
 		log.Warn("failed to post message to Slack, err=%w", err)
@@ -158,11 +163,10 @@ func toCost(result *costexplorer.Group) (ServiceDetail, error) {
 	}, nil
 }
 
-func toAttachment(cost []DailyCost) []slack.Attachment {
+func toAttachment(cost []DailyCost) ([]slack.Attachment, error) {
 	// Just day before yesterday and yesterday
-	if len(cost) != 2 {
-		log.Warn("cost length is not 2")
-		return nil
+	if len(cost) != 3 {
+		return nil, fmt.Errorf("cost length is not 3")
 	}
 
 	attachments := make([]slack.Attachment, len(cost[1].Services))
@@ -172,14 +176,14 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 		priceDiffStatement := ""
 		before, ok := cost[0].Services[name]
 		if ok {
-			diff := (detail.CostAmount / before.CostAmount) * 100
+			diff := ((detail.CostAmount / before.CostAmount) - 1) * 100
 
 			if !math.IsNaN(diff) {
 				diffMark := ""
 				// Set red color if diff is over 100%
-				if diff == 100 {
+				if diff == 0 {
 					color = "#ffffff"
-				} else if diff > 100 {
+				} else if diff > 0 {
 					color = "#ff0000"
 					diffMark = "📈"
 				} else {
@@ -188,7 +192,7 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 				}
 
 				priceDiffStatement = fmt.Sprintf(
-					" ( %s %.1f%% )",
+					" ( %s %.3f%% )",
 					diffMark,
 					diff,
 				)
@@ -222,5 +226,5 @@ func toAttachment(cost []DailyCost) []slack.Attachment {
 		attachments = append(attachments, attachment)
 	}
 
-	return attachments
+	return attachments, nil
 }

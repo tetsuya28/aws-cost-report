@@ -51,8 +51,3 @@ cp .env{.sample,}
 ```
 make run
 ```
-
-## Known issues
-### Got daily cost as $0.000
-If you set CloudWatch Events Schedule near AM 0:00 in UTC, AWS has not reflect daily cost yet.
-So, you need to set the schedule for more later.
