@@ -27,7 +27,7 @@ func GetIconURL(service string) string {
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/BusinessApplications/SimpleEmailService.png?raw=true"
 	case "Amazon DynamoDB":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Database/DynamoDB.png?raw=true"
-	case "Amazon EC2 Container Registry (ECR)":
+	case "Amazon EC2 Container Registry (ECR)", "Amazon Elastic Container Registry Public":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Containers/ElasticContainerRegistry.png?raw=true"
 	case "Amazon Elastic Container Service":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Containers/ElasticContainerService.png?raw=true"
@@ -69,6 +69,10 @@ func GetIconURL(service string) string {
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/SecurityIdentityCompliance/GuardDuty.png?raw=true"
 	case "Amazon Elastic Container Service for Kubernetes":
 		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/Containers/EKSCloud.png?raw=true"
+	case "Amazon Cognito":
+		return "https://github.com/awslabs/aws-icons-for-plantuml/blob/main/dist/SecurityIdentityCompliance/Cognito.png?raw=true"
+	case "Tax":
+		return ""
 	default:
 		return ""
 	}
@@ -77,7 +81,7 @@ func GetIconURL(service string) string {
 func GetCost() (*costexplorer.GetCostAndUsageOutput, error) {
 	now := time.Now()
 	end := now.Format("2006-01-02")
-	twoDaysBefore := now.AddDate(0, 0, -2).Format("2006-01-02")
+	twoDaysBefore := now.AddDate(0, 0, -3).Format("2006-01-02")
 
 	granularity := "DAILY"
 	metrics := []string{
