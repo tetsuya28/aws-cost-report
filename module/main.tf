@@ -7,6 +7,12 @@ variable "schedule_expression" {
 variable "build_version" {
   default = "v0.1.2"
 }
+variable "runtime" {
+  default = "provided.al2023"
+}
+variable "timeout" {
+  default = 10
+}
 
 locals {
   lambda_zip_file = format("%s/.terraform/%s.zip", path.root, var.build_version)
@@ -33,11 +39,11 @@ EOF
 
 resource "aws_lambda_function" "this" {
   function_name = var.name
-  runtime       = "go1.x"
+  runtime       = var.runtime
   handler       = "aws-cost-report"
   filename      = local.lambda_zip_file
   memory_size   = 128
-  timeout       = 10
+  timeout       = var.timeout
   role          = aws_iam_role.this.arn
   environment {
     variables = {
