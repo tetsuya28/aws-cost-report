@@ -15,9 +15,13 @@ integration-test:
 	go clean -testcache
 	SLACK_TOKEN=$(SLACK_TOKEN) SLACK_CHANNEL=$(SLACK_CHANNEL) go test -v ./... -tags=integration
 
+.PHONY: build
+build:
+	GOOS=linux GOARCH=amd64 go build -o ./bin/bootstrap main.go
+
 .PHONY: upload
 upload: build
-	zip -j ./bin/main.zip ./bin/main
+	zip -j ./bin/main.zip ./bin/bootstrap
 	aws s3 cp ./bin/main.zip s3://tetsuya28-aws-cost-report/$(TAG)/main.zip
 
 .PHONY: terraform/docs

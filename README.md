@@ -10,7 +10,7 @@ You can deploy with Terraform resources on your AWS account with AWS Lambda.
 
 ```hcl
 terraform {
-  required_version = "1.6.6"
+  required_version = "1.8.1"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -28,7 +28,7 @@ module "cost" {
   name          = "aws-cost-report" # AWS resource name to deploy Lambda, IAM, etc
   slack_channel = "#random"         # Slack channel to notify
   slack_token   = "xoxb-xxx"        # Slack token
-  build_version = "v0.1.0"          # default : latest
+  build_version = "v0.2.0"          # default : latest
 }
 ```
 
